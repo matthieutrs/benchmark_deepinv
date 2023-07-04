@@ -5,9 +5,11 @@
 
 import torch
 from torchvision import transforms
+
 import deepinv as dinv
 from deepinv.utils.demo import load_dataset, load_degradation
 
+import mrinufft
 
 def build_set3c_dataset(deg_dir=None,
                         original_data_dir=None,
@@ -99,6 +101,61 @@ def build_fastMRI_dataset(deg_dir=None,
 
     # defined physics
     physics = dinv.physics.MRI(mask=mask, device=device)
+
+    # Use parallel dataloader if using a GPU to fasten training,
+    # otherwise, as all computes are on CPU, use synchronous data loading.
+    num_workers = 4 if 'cuda' in device else 0
+    n_images_max = (
+        900 if torch.cuda.is_available() else 5
+    )  # number of images used for training
+    # (the dataset has up to 973 images, however here we use only 900)
+
+    measurement_dir = data_dir / dataset_name / operation
+    dinv_dataset_path = measurement_dir / 'dinv_dataset0.h5'
+
+    if not dinv_dataset_path.exists():
+        deepinv_datasets_path = dinv.datasets.generate_dataset(
+            train_dataset=train_dataset,
+            test_dataset=test_dataset,
+            physics=physics,
+            device=device,
+            save_dir=measurement_dir,
+            train_datapoints=n_images_max,
+            test_datapoints=1,
+            num_workers=num_workers,
+            dataset_filename=dataset_name,
+        )
+
+    test_dataset = dinv.datasets.HDF5Dataset(path=deepinv_datasets_path, train=False)
+
+    return test_dataset, physics
+
+
+def build_MRI_NC_dataset(deg_dir=None,
+                          original_data_dir=None,
+                          data_dir=None,
+                          device='cpu'):
+    operation = "MRI_NC"
+    dataset_name = "fastmri_knee_singlecoil"
+    img_size = 128
+
+    transform = transforms.Compose([transforms.Resize(img_size)])
+
+    train_dataset = load_dataset(
+        dataset_name, original_data_dir, transform, train=True
+    )
+    test_dataset = load_dataset(
+        dataset_name, original_data_dir, transform, train=False
+    )
+
+    # Create a 2D Radial trajectory for demo
+    samples_loc = mrinufft.initialize_2D_radial(Nc=100, Ns=500) * 2 * 4 * torch.ones(1).atan()
+
+    physics = dinv.physics.MRI_NC(
+        samples_loc.reshape(-1, 2), smaps=None, shape=(128, 128), density=False, n_coils=1,
+        n_batchs=1, n_trans=1, backend='finufft'
+    )
+
 
     # Use parallel dataloader if using a GPU to fasten training,
     # otherwise, as all computes are on CPU, use synchronous data loading.
