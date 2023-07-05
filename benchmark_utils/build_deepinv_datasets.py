@@ -2,8 +2,14 @@
 # the benchmark objective, datasets, and solvers. The folder should have the
 # name `benchmark_utils`, and code defined inside will be importable using
 # the usual import syntax
+import requests
+from io import BytesIO
+
+import numpy as np
 
 import torch
+from torch.utils.data import TensorDataset
+
 from torchvision import transforms
 
 import deepinv as dinv
@@ -131,22 +137,22 @@ def build_fastMRI_dataset(deg_dir=None,
     return test_dataset, physics
 
 
-def build_MRI_NC_dataset(deg_dir=None,
+def build_MRI_NC_T1_brainweb_dataset(deg_dir=None,
                           original_data_dir=None,
                           data_dir=None,
                           device='cpu'):
     operation = "MRI_NC"
-    dataset_name = "fastmri_knee_singlecoil"
-    img_size = 128
+    dataset_name = "T1_brainweb_dataset"
 
-    transform = transforms.Compose([transforms.Resize(img_size)])
+    url = "https://mycore.core-cloud.net/index.php/s/9EzDqcJxQUJKYul/download?path=%2Fdatasets&files=brainweb_t1_ICBM_1mm_subject_0.npy"
+    response = requests.get(url)
+    image = np.load(BytesIO(response.content))[90, ...]
+    image = torch.from_numpy(image).unsqueeze(0).unsqueeze(0)
+    image = (image / image.max()).to(torch.complex64)
 
-    train_dataset = load_dataset(
-        dataset_name, original_data_dir, transform, train=True
-    )
-    test_dataset = load_dataset(
-        dataset_name, original_data_dir, transform, train=False
-    )
+    stacked_tensors = torch.stack([image, image])
+    dataset = TensorDataset(stacked_tensors)  # create your dataset
+
 
     # Create a 2D Radial trajectory for demo
     samples_loc = mrinufft.initialize_2D_radial(Nc=100, Ns=500) * 2 * 4 * torch.ones(1).atan()
@@ -170,8 +176,8 @@ def build_MRI_NC_dataset(deg_dir=None,
 
     if not dinv_dataset_path.exists():
         deepinv_datasets_path = dinv.datasets.generate_dataset(
-            train_dataset=train_dataset,
-            test_dataset=test_dataset,
+            train_dataset=dataset,
+            test_dataset=dataset,
             physics=physics,
             device=device,
             save_dir=measurement_dir,

@@ -3,4 +3,4 @@
 # name `benchmark_utils`, and code defined inside will be importable using
 # the usual import syntax
 from .build_deepinv_models import build_DPIR_model, build_wavelet_model, build_waveletdict_model
-from .build_deepinv_datasets import build_set3c_dataset, build_fastMRI_dataset
+from .build_deepinv_datasets import build_set3c_dataset, build_fastMRI_dataset, build_MRI_NC_T1_brainweb_dataset
