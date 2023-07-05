@@ -18,7 +18,7 @@ DEG_DIR = BASE_DIR / "degradations"
 class Dataset(BaseDataset):
 
     # Name to select the dataset in the CLI and to display the results.
-    name = "fastMRI"
+    name = "Brainweb"
 
     # List of parameters to generate the datasets. The benchmark will consider
     # the cross product for each key in the dictionary.

@@ -12,10 +12,11 @@ from torch.utils.data import TensorDataset
 
 from torchvision import transforms
 
-import deepinv as dinv
+import deepinv
 from deepinv.utils.demo import load_dataset, load_degradation
 
 import mrinufft
+from mrinufft.trajectories.density import voronoi
 
 def build_set3c_dataset(deg_dir=None,
                         original_data_dir=None,
@@ -50,11 +51,11 @@ def build_set3c_dataset(deg_dir=None,
     dataset = load_dataset(dataset_name, original_data_dir, transform=val_transform)
 
     n_channels = 3  # 3 for color images, 1 for gray-scale images
-    physics = dinv.physics.BlurFFT(
+    physics = deepinv.physics.BlurFFT(
         img_size=(n_channels, img_size, img_size),
         filter=kernel_torch,
         device=device,
-        noise_model=dinv.physics.GaussianNoise(sigma=std),
+        noise_model=deepinv.physics.GaussianNoise(sigma=std),
     )
 
     # Use parallel dataloader if using a GPU to fasten training,
@@ -71,7 +72,7 @@ def build_set3c_dataset(deg_dir=None,
     dinv_dataset_path = measurement_dir / 'dinv_dataset0.h5'
 
     if not dinv_dataset_path.exists():
-        dinv_dataset_path = dinv.datasets.generate_dataset(
+        dinv_dataset_path = deepinv.datasets.generate_dataset(
             train_dataset=dataset,
             test_dataset=None,
             physics=physics,
@@ -81,7 +82,7 @@ def build_set3c_dataset(deg_dir=None,
             num_workers=num_workers,
         )
 
-    dataset = dinv.datasets.HDF5Dataset(path=dinv_dataset_path, train=True)
+    dataset = deepinv.datasets.HDF5Dataset(path=dinv_dataset_path, train=True)
 
     return dataset, physics
 
@@ -106,7 +107,7 @@ def build_fastMRI_dataset(deg_dir=None,
     mask = load_degradation("mri_mask_128x128.npy", deg_dir)
 
     # defined physics
-    physics = dinv.physics.MRI(mask=mask, device=device)
+    physics = deepinv.physics.MRI(mask=mask, device=device)
 
     # Use parallel dataloader if using a GPU to fasten training,
     # otherwise, as all computes are on CPU, use synchronous data loading.
@@ -120,7 +121,7 @@ def build_fastMRI_dataset(deg_dir=None,
     dinv_dataset_path = measurement_dir / 'dinv_dataset0.h5'
 
     if not dinv_dataset_path.exists():
-        deepinv_datasets_path = dinv.datasets.generate_dataset(
+        deepinv_datasets_path = deepinv.datasets.generate_dataset(
             train_dataset=train_dataset,
             test_dataset=test_dataset,
             physics=physics,
@@ -132,7 +133,7 @@ def build_fastMRI_dataset(deg_dir=None,
             dataset_filename=dataset_name,
         )
 
-    test_dataset = dinv.datasets.HDF5Dataset(path=deepinv_datasets_path, train=False)
+    test_dataset = deepinv.datasets.HDF5Dataset(path=deepinv_datasets_path, train=False)
 
     return test_dataset, physics
 
@@ -147,7 +148,7 @@ def build_MRI_NC_T1_brainweb_dataset(deg_dir=None,
     url = "https://mycore.core-cloud.net/index.php/s/9EzDqcJxQUJKYul/download?path=%2Fdatasets&files=brainweb_t1_ICBM_1mm_subject_0.npy"
     response = requests.get(url)
     image = np.load(BytesIO(response.content))[90, ...]
-    image = torch.from_numpy(image).unsqueeze(0).unsqueeze(0)
+    image = torch.from_numpy(image).unsqueeze(0)  #.unsqueeze(0)
     image = (image / image.max()).to(torch.complex64)
 
     stacked_tensors = torch.stack([image, image])
@@ -155,11 +156,12 @@ def build_MRI_NC_T1_brainweb_dataset(deg_dir=None,
 
 
     # Create a 2D Radial trajectory for demo
-    samples_loc = mrinufft.initialize_2D_radial(Nc=100, Ns=500) * 2 * 4 * torch.ones(1).atan()
+    samples_loc = mrinufft.initialize_2D_radial(Nc=100, Ns=500)
+    # density = voronoi(samples_loc)
 
-    physics = dinv.physics.MRI_NC(
-        samples_loc.reshape(-1, 2), smaps=None, shape=(128, 128), density=False, n_coils=1,
-        n_batchs=1, n_trans=1, backend='finufft'
+    physics = deepinv.physics.MRI_NC(
+        samples_loc.reshape(-1, 2), smaps=None, shape=image.shape[-2:], density=False, n_coils=1,
+        n_batchs=1, n_trans=1, backend='finufft',
     )
 
 
@@ -175,8 +177,8 @@ def build_MRI_NC_T1_brainweb_dataset(deg_dir=None,
     dinv_dataset_path = measurement_dir / 'dinv_dataset0.h5'
 
     if not dinv_dataset_path.exists():
-        deepinv_datasets_path = dinv.datasets.generate_dataset(
-            train_dataset=dataset,
+        deepinv_datasets_path = deepinv.datasets.generate_dataset(
+            train_dataset=None,
             test_dataset=dataset,
             physics=physics,
             device=device,
@@ -187,6 +189,6 @@ def build_MRI_NC_T1_brainweb_dataset(deg_dir=None,
             dataset_filename=dataset_name,
         )
 
-    test_dataset = dinv.datasets.HDF5Dataset(path=deepinv_datasets_path, train=False)
+    test_dataset = deepinv.datasets.HDF5Dataset(path=deepinv_datasets_path, train=False)
 
     return test_dataset, physics

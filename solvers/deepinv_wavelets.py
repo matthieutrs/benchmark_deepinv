@@ -35,7 +35,7 @@ class Solver(BaseSolver):
         # It is customizable for each benchmark.
         self.dataloader, self.physics = dataloader, physics
 
-    def run(self, n_iter, plot_results=True):
+    def run(self, n_iter, plot_results=False):
         # This is the function that is called to evaluate the solver.
         # It runs the algorithm for a given a number of iterations `n_iter`.
 
@@ -43,6 +43,7 @@ class Solver(BaseSolver):
         model = build_model(self.physics, device='cpu')
 
         X_rec_list = []
+        print(len(self.dataloader))
         for batch in self.dataloader:
             X, y = batch
             X_rec = model(y, self.physics)
