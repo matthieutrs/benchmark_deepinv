@@ -35,12 +35,22 @@ class Solver(BaseSolver):
         # It is customizable for each benchmark.
         self.dataloader, self.physics = dataloader, physics
 
-    def run(self, n_iter, plot_results=True):
+    def run(self, n_iter, plot_results=False):
         # This is the function that is called to evaluate the solver.
         # It runs the algorithm for a given a number of iterations `n_iter`.
 
-        # load specific parameters for DPIR
-        model = build_model(self.physics, device='cpu')
+        # load specific parameters for wavelet dictionary
+        if self.physics.__class__.__name__ == 'MRI':  # If fastMRI dataset, images are (B, 2, H, W) real
+            sigma = 0.01
+            prior_type = 'SeparablePnP'
+        elif self.physics.__class__.__name__ == 'MRI_NC':  # If MRI_NC dataset, images are (B, 1, H, W) complex
+            sigma = 0.01
+            prior_type = 'ComplexPnP'
+        else:  # else images are (B, C, H, W) real
+            sigma = self.physics.noise_model.sigma.item()/8.  # We divide by the number of wavelet bases for normalization of the associated representation matrix
+            prior_type = 'PnP'
+
+        model = build_model(device='cpu', sigma=sigma, prior_type=prior_type)
 
         X_rec_list = []
         for batch in self.dataloader:

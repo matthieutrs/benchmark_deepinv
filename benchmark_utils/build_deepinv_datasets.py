@@ -15,8 +15,11 @@ from torchvision import transforms
 import deepinv
 from deepinv.utils.demo import load_dataset, load_degradation
 
-import mrinufft
-from mrinufft.trajectories.density import voronoi
+try:
+    import mrinufft
+    from mrinufft.trajectories.density import voronoi
+except:
+    print("Could not import mrinufft. Some functions will not be available.")
 
 def build_set3c_dataset(deg_dir=None,
                         original_data_dir=None,
@@ -73,12 +76,12 @@ def build_set3c_dataset(deg_dir=None,
 
     if not dinv_dataset_path.exists():
         dinv_dataset_path = deepinv.datasets.generate_dataset(
-            train_dataset=dataset,
-            test_dataset=None,
+            train_dataset=None,
+            test_dataset=dataset,
             physics=physics,
             device=device,
             save_dir=measurement_dir,
-            train_datapoints=n_images_max,
+            test_datapoints=3,
             num_workers=num_workers,
         )
 
@@ -97,9 +100,6 @@ def build_fastMRI_dataset(deg_dir=None,
 
     transform = transforms.Compose([transforms.Resize(img_size)])
 
-    train_dataset = load_dataset(
-        dataset_name, original_data_dir, transform, train=True
-    )
     test_dataset = load_dataset(
         dataset_name, original_data_dir, transform, train=False
     )
@@ -122,7 +122,7 @@ def build_fastMRI_dataset(deg_dir=None,
 
     if not dinv_dataset_path.exists():
         deepinv_datasets_path = deepinv.datasets.generate_dataset(
-            train_dataset=train_dataset,
+            train_dataset=None,
             test_dataset=test_dataset,
             physics=physics,
             device=device,
