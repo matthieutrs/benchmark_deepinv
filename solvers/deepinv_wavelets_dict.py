@@ -56,7 +56,7 @@ class Solver(BaseSolver):
         for batch in self.dataloader:
             X, y = batch
             X_rec = model(y, self.physics)
-            X_rec_list.append(X_rec)
+            X_rec_list.append(torch.real(X_rec))
 
         self.X_rec_list = X_rec_list
 

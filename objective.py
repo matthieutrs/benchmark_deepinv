@@ -5,6 +5,7 @@ from benchopt import BaseObjective, safe_import_context
 # - getting requirements info when all dependencies are not installed.
 with safe_import_context() as import_ctx:
     import numpy as np
+    import torch
     import deepinv as dinv
 
 
@@ -13,7 +14,7 @@ with safe_import_context() as import_ctx:
 class Objective(BaseObjective):
 
     # Name to select the objective in the CLI and to display the results.
-    name = "imagerestoration"
+    name = "PSNR"
 
     # List of parameters for the objective. The benchmark will consider
     # the cross product for each key in the dictionary.
@@ -70,4 +71,5 @@ class Objective(BaseObjective):
         )
 
     def psnr(self, x_true, x_est):
-        return dinv.utils.metric.cal_psnr(x_true, x_est)
+        psnr_value = dinv.utils.metric.cal_psnr(torch.real(x_true), torch.real(x_est))
+        return psnr_value

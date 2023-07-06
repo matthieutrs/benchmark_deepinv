@@ -54,7 +54,7 @@ def build_DPIR_model(n_channels=3, device='cpu', sigma=0.01, prior_type='PnP'):
     return model
 
 
-def build_wavelet_model(device='cpu', sigma=0.01, prior_type='PnP'):
+def build_wavelet_model(stepsize=1.0, sigma=0.01, prior_type='PnP', device='cpu'):
 
     # Do not stop algorithm with convergence criteria
     early_stop = False
@@ -78,7 +78,7 @@ def build_wavelet_model(device='cpu', sigma=0.01, prior_type='PnP'):
 
     max_iter = 200
 
-    params_algo = {"stepsize": 1.0,
+    params_algo = {"stepsize": stepsize,
                    "g_param": sigma,
                    "lambda": 1.0}
 
@@ -98,7 +98,7 @@ def build_wavelet_model(device='cpu', sigma=0.01, prior_type='PnP'):
 
 
 
-def build_waveletdict_model(sigma=0.01, prior_type='PnP', device='cpu'):
+def build_waveletdict_model(stepsize=1.0, sigma=0.01, prior_type='PnP', device='cpu'):
 
     # Do not stop algorithm with convergence criteria
     early_stop = False
@@ -123,7 +123,7 @@ def build_waveletdict_model(sigma=0.01, prior_type='PnP', device='cpu'):
 
     max_iter = 200
 
-    params_algo = {"stepsize": 1.0,
+    params_algo = {"stepsize": stepsize,
                    "g_param": sigma,
                    "lambda": 1.0}
 

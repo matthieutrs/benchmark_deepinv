@@ -43,20 +43,24 @@ class Solver(BaseSolver):
         if self.physics.__class__.__name__ == 'MRI':  # If fastMRI dataset, images are (B, 2, H, W) real
             sigma = 0.01
             prior_type = 'SeparablePnP'
+            norm_op = 1.0
         elif self.physics.__class__.__name__ == 'MRI_NC':  # If MRI_NC dataset, images are (B, 1, H, W) complex
             sigma = 0.01
             prior_type = 'ComplexPnP'
+            norm_op = self.physics.compute_norm(torch.real(torch.randn(self.physics.shape))).item()
         else:  # else images are (B, C, H, W) real
             sigma = self.physics.noise_model.sigma.item()
             prior_type = 'PnP'
+            norm_op = 1.0
 
-        model = build_model(device='cpu', sigma=sigma, prior_type=prior_type)
+        stepsize = 1/(norm_op**2)
+        model = build_model(stepsize=stepsize, sigma=sigma, prior_type=prior_type, device='cpu')
 
         X_rec_list = []
         for batch in self.dataloader:
             X, y = batch
             X_rec = model(y, self.physics)
-            X_rec_list.append(X_rec)
+            X_rec_list.append(torch.real(X_rec))
 
         self.X_rec_list = X_rec_list
 
