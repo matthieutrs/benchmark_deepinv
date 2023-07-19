@@ -48,7 +48,7 @@ This benchmark can be run using the following commands:
 
 
 
-The methods currently implemented can be solved using the following commands:
+The methods currently implemented can be solved using the following command:
 
 .. code-block::
 
