@@ -8,9 +8,7 @@ reproducible the comparisons of optimization algorithms.
 This benchmark is dedicated to solver of the deepinv library solving imaging inverse problems of the form
 
 
-.. math::
-
-    y = Ax+e
+$$y = Ax+e$$
 
 
 where $A$ is a linear operator, $x$ is an image to recover, $y$ is the observed data and $e$ is the realization of
@@ -20,14 +18,14 @@ This benchmark is based on the deepinv library, which is a library of solvers an
 for inverse problems in imaging.
 
 Currently, the following solvers are implemented in this benchmark:
-- DPIR (Deep Plug-and-Play Priors)
-- Wavelet
-- Wavelet dictionary
+* DPIR (Deep Plug-and-Play Priors)
+* Wavelet
+* Wavelet dictionary
 
 The following inverse problems are also implemented in this benchmark:
-- Image deconvolution
-- MRI reconstruction
-- Non-cartesian MRI (work in progress)
+* Image deconvolution
+* MRI reconstruction
+* Non-cartesian MRI (work in progress)
 
 
 Install
