@@ -24,10 +24,12 @@ class Dataset(BaseDataset):
     # the cross product for each key in the dictionary.
     # Any parameters 'param' defined here is available as `self.param`.
     parameters = {
-        'std': [0.03, 0.1],
-        'kernel': [0, 1],
+        'std': [0.03],
+        'kernel': [0],
     }
 
+    # 'std': [0.03, 0.1],
+    # 'kernel': [0, 1],
     def get_data(self):
         # The return arguments of this function are passed as keyword arguments
         # to `Objective.set_data`. This defines the benchmark's
@@ -37,9 +39,10 @@ class Dataset(BaseDataset):
         dataset, physics = build_set3c_dataset(deg_dir=DEG_DIR,
                                                original_data_dir=ORIGINAL_DATA_DIR,
                                                data_dir=DATA_DIR,
-                                               img_size=32,
+                                               img_size=256,
                                                kernel_index=self.kernel,
-                                               std=self.std,)
+                                               std=self.std,
+                                               rebuild=True)
 
         dataloader = DataLoader(
             dataset, batch_size=1, num_workers=0, shuffle=False

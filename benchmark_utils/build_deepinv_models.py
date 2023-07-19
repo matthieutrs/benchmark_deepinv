@@ -73,7 +73,7 @@ def build_wavelet_model(stepsize=1.0, sigma=0.01, prior_type='PnP', device='cpu'
         prior = ComplexPnP(denoiser=denoiser)
         iteration = "PGD"  # Not all algos fit for complex data yet
     elif prior_type == 'SeparablePnP':
-        prior = ComplexPnP(denoiser=denoiser)
+        prior = SeparablePnP(denoiser=denoiser)
         iteration = "HQS"
 
     max_iter = 200
@@ -118,7 +118,7 @@ def build_waveletdict_model(stepsize=1.0, sigma=0.01, prior_type='PnP', device='
         prior = ComplexPnP(denoiser=denoiser)
         iteration = "PGD"  # Not all algos fit for complex data yet
     elif prior_type == 'SeparablePnP':
-        prior = ComplexPnP(denoiser=denoiser)
+        prior = SeparablePnP(denoiser=denoiser)
         iteration = "HQS"
 
     max_iter = 200

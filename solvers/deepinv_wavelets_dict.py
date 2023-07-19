@@ -35,7 +35,7 @@ class Solver(BaseSolver):
         # It is customizable for each benchmark.
         self.dataloader, self.physics = dataloader, physics
 
-    def run(self, n_iter, plot_results=False):
+    def run(self, n_iter, plot_results=True):
         # This is the function that is called to evaluate the solver.
         # It runs the algorithm for a given a number of iterations `n_iter`.
 
@@ -49,7 +49,7 @@ class Solver(BaseSolver):
             prior_type = 'ComplexPnP'
             norm_op = self.physics.compute_norm(torch.real(torch.randn(self.physics.shape))).item()
         else:  # else images are (B, C, H, W) real
-            sigma = self.physics.noise_model.sigma.item()
+            sigma = self.physics.noise_model.sigma.item()/3.
             prior_type = 'PnP'
             norm_op = 1.0
 
@@ -79,8 +79,9 @@ class Solver(BaseSolver):
             else:
                 imgs = [y, X_rec, X]
 
-            name_imgs = ["Obs.", "Recons.", "GT"]
-            plot(imgs, titles=name_imgs, save_dir='images', show=True)
+            name_imgs = ["Obs.", "Wavelet dict.", "GT"]
+            plot(imgs, titles=name_imgs, show=True,
+                 save_dir='/Users/matthieuterris/Documents/work/results/benchopt_deepinv/')
 
     def get_result(self):
         # Return the result from one optimization run.

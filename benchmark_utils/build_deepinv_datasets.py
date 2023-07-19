@@ -27,7 +27,8 @@ def build_set3c_dataset(deg_dir=None,
                         img_size=32,
                         kernel_index=1,
                         std=0.01,
-                        device='cpu'):
+                        device='cpu',
+                        rebuild=False):
     r"""
     Build the dataset for the set3c benchmark.
 
@@ -74,7 +75,7 @@ def build_set3c_dataset(deg_dir=None,
     # if not hasattr(self, 'dataset_path'):
     dinv_dataset_path = measurement_dir / 'dinv_dataset0.h5'
 
-    if not dinv_dataset_path.exists():
+    if not dinv_dataset_path.exists() or rebuild:
         dinv_dataset_path = deepinv.datasets.generate_dataset(
             train_dataset=None,
             test_dataset=dataset,
@@ -85,7 +86,7 @@ def build_set3c_dataset(deg_dir=None,
             num_workers=num_workers,
         )
 
-    dataset = deepinv.datasets.HDF5Dataset(path=dinv_dataset_path, train=True)
+    dataset = deepinv.datasets.HDF5Dataset(path=dinv_dataset_path, train=False)
 
     return dataset, physics
 
@@ -168,10 +169,6 @@ def build_MRI_NC_T1_brainweb_dataset(deg_dir=None,
     # Use parallel dataloader if using a GPU to fasten training,
     # otherwise, as all computes are on CPU, use synchronous data loading.
     num_workers = 4 if 'cuda' in device else 0
-    n_images_max = (
-        900 if torch.cuda.is_available() else 5
-    )  # number of images used for training
-    # (the dataset has up to 973 images, however here we use only 900)
 
     measurement_dir = data_dir / dataset_name / operation
     dinv_dataset_path = measurement_dir / 'dinv_dataset0.h5'
@@ -183,7 +180,7 @@ def build_MRI_NC_T1_brainweb_dataset(deg_dir=None,
             physics=physics,
             device=device,
             save_dir=measurement_dir,
-            train_datapoints=n_images_max,
+            train_datapoints=1,
             test_datapoints=1,
             num_workers=num_workers,
             dataset_filename=dataset_name,

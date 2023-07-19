@@ -9,6 +9,7 @@ with safe_import_context() as import_ctx:
     from benchopt.stopping_criterion import SingleRunCriterion
 
     import torch
+    import deepinv
     from deepinv.utils import plot
 
 
@@ -35,7 +36,7 @@ class Solver(BaseSolver):
         # It is customizable for each benchmark.
         self.dataloader, self.physics = dataloader, physics
 
-    def run(self, n_iter, plot_results=False):
+    def run(self, n_iter, plot_results=True):
         # This is the function that is called to evaluate the solver.
         # It runs the algorithm for a given a number of iterations `n_iter`.
 
@@ -79,8 +80,12 @@ class Solver(BaseSolver):
             else:
                 imgs = [y, X_rec, X]
 
-            name_imgs = ["Obs.", "Recons.", "GT"]
-            plot(imgs, titles=name_imgs, save_dir='images', show=True)
+            name_imgs = ["Obs.", "Wavelet (single)", "GT"]
+            # plot(imgs, titles=name_imgs, save_dir='images', show=True)
+            # print(deepinv.__file__)
+            # print(asdasdasd)
+            plot(imgs, titles=name_imgs, show=True, figsize=None, dpi=100, fontsize_titles=15,
+                 save_dir='/Users/matthieuterris/Documents/work/results/benchopt_deepinv/')
 
     def get_result(self):
         # Return the result from one optimization run.
