@@ -8,7 +8,7 @@ from deepinv.models import DRUNet
 from deepinv.optim.data_fidelity import L2
 from deepinv.optim.prior import Prior, PnP
 from deepinv.optim.optimizers import optim_builder
-from deepinv.utils.parameters import get_DPIR_params
+from deepinv.optim.dpir import get_DPIR_params
 
 def build_DPIR_model(n_channels=3, device='cpu', sigma=0.01, prior_type='PnP'):
 
@@ -64,7 +64,7 @@ def build_wavelet_model(stepsize=1.0, sigma=0.01, prior_type='PnP', device='cpu'
 
     # Specify the denoising prior
     level = 3
-    denoiser = deepinv.models.WaveletPrior(wv="db8", level=level).to(device)
+    denoiser = deepinv.models.WaveletDenoiser(wv="db8", level=level).to(device)
 
     if prior_type == 'PnP':  # For wavelets, this is equivalent to SeparablePnP
         prior = PnP(denoiser=denoiser)

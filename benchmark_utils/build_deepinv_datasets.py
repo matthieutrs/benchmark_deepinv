@@ -6,6 +6,7 @@ import requests
 from io import BytesIO
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import torch
 from torch.utils.data import TensorDataset
@@ -47,7 +48,7 @@ def build_set3c_dataset(deg_dir=None,
 
     # Generate a motion blur operator.
     kernel_torch = load_degradation(
-        "Levin09.npy", deg_dir / "kernels", kernel_index=kernel_index
+        "Levin09.npy", deg_dir / "kernels", index=kernel_index
     )
     kernel_torch = kernel_torch.unsqueeze(0).unsqueeze(
         0
@@ -101,11 +102,42 @@ def build_fastMRI_dataset(deg_dir=None,
 
     transform = transforms.Compose([transforms.Resize(img_size)])
 
+
+    train_dataset = load_dataset(
+        dataset_name, original_data_dir, transform, train=False
+    )
+
     test_dataset = load_dataset(
         dataset_name, original_data_dir, transform, train=False
     )
 
     mask = load_degradation("mri_mask_128x128.npy", deg_dir)
+    # def create_vertical_lines_mask(image_shape=(320, 320), acceleration_factor=4, seed=0):
+    #     np.random.seed(seed)
+    #     if acceleration_factor == 4:
+    #         central_lines_percent = 0.08
+    #         num_lines_center = int(central_lines_percent * image_shape[-1])
+    #         side_lines_percent = 0.25 - central_lines_percent
+    #         num_lines_side = int(side_lines_percent * image_shape[-1])
+    #     if acceleration_factor == 8:
+    #         central_lines_percent = 0.04
+    #         num_lines_center = int(central_lines_percent * image_shape[-1])
+    #         side_lines_percent = 0.125 - central_lines_percent
+    #         num_lines_side = int(side_lines_percent * image_shape[-1])
+    #     mask = np.zeros(image_shape)
+    #     center_line_indices = np.linspace(image_shape[0] // 2 - num_lines_center // 2,
+    #                                       image_shape[0] // 2 + num_lines_center // 2 + 1, dtype=np.int32)
+    #     mask[:, center_line_indices] = 1
+    #     random_line_indices = np.random.choice(image_shape[0], size=(num_lines_side // 2,), replace=False)
+    #     mask[:, random_line_indices] = 1
+    #     return torch.from_numpy(mask).to(torch.float)
+    #
+    # mask = create_vertical_lines_mask(image_shape=(img_size, img_size), acceleration_factor=4, seed=0)
+    #
+    # plt.figure()
+    # plt.imshow(mask)
+    # plt.imsave('mask.png', mask)
+    # plt.close()
 
     # defined physics
     physics = deepinv.physics.MRI(mask=mask, device=device)
@@ -123,7 +155,7 @@ def build_fastMRI_dataset(deg_dir=None,
 
     if not dinv_dataset_path.exists():
         deepinv_datasets_path = deepinv.datasets.generate_dataset(
-            train_dataset=None,
+            train_dataset=train_dataset,
             test_dataset=test_dataset,
             physics=physics,
             device=device,

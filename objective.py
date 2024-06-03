@@ -20,11 +20,11 @@ class Objective(BaseObjective):
     # the cross product for each key in the dictionary.
     # All parameters 'p' defined here are available as 'self.p'.
     # This means the OLS objective will have a parameter `self.whiten_y`.
-    parameters = {}
+    # parameters = {}
 
     # Minimal version of benchopt required to run this benchmark.
     # Bump it up if the benchmark depends on a new feature of benchopt.
-    min_benchopt_version = "1.3"
+    # min_benchopt_version = "1.3"
 
     def set_data(self, dataloader, physics):
         # The keyword arguments of this function are the keys of the dictionary
@@ -35,7 +35,7 @@ class Objective(BaseObjective):
         # `set_data` can be used to preprocess the data. For instance,
         # if `whiten_y` is True, remove the mean of `y`.
 
-    def compute(self, list_x_rec):
+    def evaluate_result(self, list_x_rec):
         # The arguments of this function are the outputs of the
         # `Solver.get_result`. This defines the benchmark's API to pass
         # solvers' result. This is customizable for each benchmark.
@@ -44,7 +44,8 @@ class Objective(BaseObjective):
         psnr_list = []
         for ind, batch in enumerate(self.dataloader):
             x_ref, y_ref = batch
-            psnr_list.append(self.psnr(x_ref, list_x_rec[ind]))
+            # psnr_list.append(self.psnr(x_ref, list_x_rec[ind]))
+            psnr_list.append(dinv.utils.metric.cal_psnr(torch.real(x_ref), torch.real(list_x_rec[ind])))
 
         psnr_mean, psnr_std = np.mean(psnr_list), np.std(psnr_list)
 
@@ -54,7 +55,7 @@ class Objective(BaseObjective):
             value=psnr_mean, snr_mean=psnr_mean, snr_std=psnr_std,
         )
 
-    def get_one_solution(self):
+    def get_one_result(self):
         # Return one solution. The return value should be an object compatible
         # with `self.compute`. This is mainly for testing purposes.
         return np.zeros(self.X.shape[1])
@@ -70,6 +71,6 @@ class Objective(BaseObjective):
             physics=self.physics,
         )
 
-    def psnr(self, x_true, x_est):
-        psnr_value = dinv.utils.metric.cal_psnr(torch.real(x_true), torch.real(x_est))
-        return psnr_value
+    # def psnr(self, x_true, x_est):
+    #     psnr_value = dinv.utils.metric.cal_psnr(torch.real(x_true), torch.real(x_est))
+    #     return psnr_value

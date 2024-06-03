@@ -8,6 +8,8 @@ with safe_import_context() as import_ctx:
     from benchmark_utils import build_wavelet_model as build_model
     from benchopt.stopping_criterion import SingleRunCriterion
 
+    import matplotlib.pyplot as plt
+
     import torch
     import deepinv
     from deepinv.utils import plot
@@ -81,10 +83,11 @@ class Solver(BaseSolver):
                 imgs = [y, X_rec, X]
 
             name_imgs = ["Obs.", "Wavelet (single)", "GT"]
-            # plot(imgs, titles=name_imgs, save_dir='images', show=True)
-            # print(deepinv.__file__)
-            # print(asdasdasd)
-            plot(imgs, titles=name_imgs, show=True, figsize=None, dpi=100, fontsize_titles=15,
+            plt.imsave('rec_wavelets.png', X_rec.cpu().numpy(), cmap='viridis')
+            plt.imsave('groundtruth.png', X[0, 0].cpu().numpy(), cmap='viridis')
+
+
+            plot(imgs, titles=name_imgs, show=True,
                  save_dir='/Users/matthieuterris/Documents/work/results/benchopt_deepinv/')
 
     def get_result(self):
